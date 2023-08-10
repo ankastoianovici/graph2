@@ -1,173 +1,120 @@
-/*package com.example.graph2;
-
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-
-import androidx.appcompat.app.AppCompatActivity;
-
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
-
-import java.util.Random;
-
-public class MainActivity extends AppCompatActivity {
-
-    private GraphView scatterPlot;
-    private LineGraphSeries<DataPoint> series;
-    private int xAxisValue = 0;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        scatterPlot = findViewById(R.id.lineChart);
-        Button addButton = findViewById(R.id.addButton);
-
-        series = new LineGraphSeries<>();
-        scatterPlot.addSeries(series);
-
-        scatterPlot.getViewport().setScalable(true);
-        scatterPlot.getViewport().setScrollable(true);
-
-        addButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                float randomValue = new Random().nextInt(101);
-                addPoint(randomValue);
-            }
-        });
-    }
-
-    private void addPoint(float value) {
-        series.appendData(new DataPoint(xAxisValue++, value), true, 100);
-    }
-}
-*/
-/*package com.example.graph2;
-
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-
-import androidx.appcompat.app.AppCompatActivity;
-
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
-
-import java.util.Random;
-
-public class MainActivity extends AppCompatActivity {
-
-    private GraphView scatterPlot;
-    private LineGraphSeries<DataPoint> series;
-    private double timeValue = 0; // Time value in seconds
-    private final double TIME_INTERVAL = 1.0; // Time interval between data points in seconds
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        scatterPlot = findViewById(R.id.lineChart);
-        Button addButton = findViewById(R.id.addButton);
-
-        series = new LineGraphSeries<>();
-        scatterPlot.addSeries(series);
-
-        scatterPlot.getViewport().setScalable(true);
-        scatterPlot.getViewport().setScrollable(true);
-
-        addButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                float randomValue = new Random().nextInt(101);
-                addPoint(randomValue);
-            }
-        });
-    }
-
-    private void addPoint(float value) {
-        series.appendData(new DataPoint(timeValue, value), true, 100);
-        timeValue += TIME_INTERVAL;
-
-        // Update viewport to display the latest data points
-        double maxX = timeValue;
-        double minX = Math.max(0, maxX - 10); // Show the last 10 seconds of data
-        scatterPlot.getViewport().setMinX(minX);
-        scatterPlot.getViewport().setMaxX(maxX);
-        scatterPlot.onDataChanged(true, true);
-    }
-}*/
 package com.example.graph2;
 
+import android.app.Activity;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.Bundle;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import com.jjoe64.graphview.DefaultLabelFormatter;
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
-
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity implements View.OnClickListener {
 
-    private GraphView scatterPlot;
-    private LineGraphSeries<DataPoint> series;
-    private long xAxisValue = 0; // Time value in milliseconds
+    private SurfaceView graphCanvas;
+    private Button addDataButton;
+
+    private SurfaceHolder holder;
+    private Paint paint;
+    private List<Float> dataPoints;
+    private List<Long> timestamps;
+    private Random random;
+
+    private float startX = 0;
+    private float offsetX = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        scatterPlot = findViewById(R.id.lineChart);
-        Button addButton = findViewById(R.id.addButton);
+        graphCanvas = findViewById(R.id.graphCanvas);
+        addDataButton = findViewById(R.id.addDataButton);
 
-        series = new LineGraphSeries<>();
-        scatterPlot.addSeries(series);
+        addDataButton.setOnClickListener(this);
 
-        scatterPlot.getViewport().setScalable(true);
-        scatterPlot.getViewport().setScrollable(true);
+        holder = graphCanvas.getHolder();
+        paint = new Paint();
+        dataPoints = new ArrayList<>();
+        timestamps = new ArrayList<>();
+        random = new Random();
 
-        addButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                float randomValue = new Random().nextInt(101);
-                addPoint(System.currentTimeMillis(), randomValue);
-            }
-        });
+        Button moveLeftButton = findViewById(R.id.moveLeftButton);
+        Button moveRightButton = findViewById(R.id.moveRightButton);
 
-        // Customize y-axis label formatter
-        scatterPlot.getGridLabelRenderer().setLabelFormatter(new MyLabelFormatter());
+        moveLeftButton.setOnClickListener(this);
+        moveRightButton.setOnClickListener(this);
     }
 
-    private class MyLabelFormatter extends DefaultLabelFormatter {
-        private SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
-
-        @Override
-        public String formatLabel(double value, boolean isValueX) {
-            if (isValueX) {
-                // Format x-axis time
-                return dateFormat.format(new Date((long) value));
-            } else {
-                // Format y-axis value
-                return super.formatLabel(value, isValueX);
-            }
+    @Override
+    public void onClick(View v) {
+        if (v.getId() == R.id.addDataButton) {
+            float randomValue = random.nextFloat() * 100; // Generate a random value between 0 and 100
+            dataPoints.add(randomValue);
+            timestamps.add(System.currentTimeMillis()); // Add current timestamp
+            System.out.println("Added random value: " + randomValue + " at time: " + getCurrentTime());
+            drawGraph();
+        } else if (v.getId() == R.id.moveLeftButton) {
+            offsetX += 20; // Move the graph to the left by 20 pixels
+            drawGraph();
+        } else if (v.getId() == R.id.moveRightButton) {
+            offsetX -= 20; // Move the graph to the right by 20 pixels
+            drawGraph();
         }
     }
 
-    private void addPoint(long timeMillis, float value) {
-        series.appendData(new DataPoint(timeMillis, value), true, 100);
+    private String getCurrentTime() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
+        return dateFormat.format(new Date());
+    }
+
+    private void drawGraph() {
+        if (holder.getSurface().isValid()) {
+            Canvas canvas = holder.lockCanvas();
+            canvas.drawColor(Color.WHITE); // Clear canvas
+
+            paint.setColor(Color.LTGRAY);
+            for (int i = 1; i <= 10; i++) {
+                float y = i * graphCanvas.getHeight() / 10;
+                canvas.drawLine(0, y, graphCanvas.getWidth(), y, paint);
+
+                // Draw gradation numbers on the Y-axis
+                paint.setColor(Color.BLACK);
+                float value = 100 - (i * 10); // Assuming the range is 0-100
+                canvas.drawText(String.valueOf(value), 10, y - 10, paint);
+            }
+
+            paint.setColor(Color.BLUE);
+            float x = startX + offsetX;
+            float lastY = graphCanvas.getHeight() - dataPoints.get(0);
+
+            int distanceBetweenPoints = 60; // Set the desired distance between points
+
+            for (int i = 0; i < dataPoints.size(); i++) {
+                float y = graphCanvas.getHeight() - dataPoints.get(i);
+                canvas.drawLine(x, lastY, x + distanceBetweenPoints, y, paint);
+                x += distanceBetweenPoints;
+                lastY = y;
+
+                // Draw timestamp on the X-axis
+                paint.setColor(Color.BLACK);
+                canvas.drawText(getCurrentTimeFromTimestamp(timestamps.get(i)), x - 10, graphCanvas.getHeight() - 10, paint);
+            }
+
+            holder.unlockCanvasAndPost(canvas);
+        }
+    }
+
+    private String getCurrentTimeFromTimestamp(long timestamp) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
+        return dateFormat.format(new Date(timestamp));
     }
 }

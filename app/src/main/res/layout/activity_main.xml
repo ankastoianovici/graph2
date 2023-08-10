@@ -1,25 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
+    android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <com.jjoe64.graphview.GraphView
-        android:id="@+id/lineChart"
+    <SurfaceView
+        android:id="@+id/graphCanvas"
         android:layout_width="match_parent"
-        android:layout_height="350dp" />
-
+        android:layout_height="300dp" />
 
     <Button
-        android:id="@+id/addButton"
+        android:id="@+id/addDataButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add Value"
-        android:layout_below="@id/lineChart"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp" />
+        android:text="Add Random Data" />
 
-</RelativeLayout>
+    <Button
+        android:id="@+id/moveLeftButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Move Left" />
+
+    <Button
+        android:id="@+id/moveRightButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Move Right" />
+
+</LinearLayout>
