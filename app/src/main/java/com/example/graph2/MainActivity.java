@@ -86,6 +86,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
             dataPoints.add(randomValue);
             timestamps.add(System.currentTimeMillis()); // Add current timestamp
             System.out.println("Added random value: " + randomValue + " at time: " + getCurrentTime());
+
+            float maxVisibleOffset = graphCanvas.getWidth() - (dataPoints.size() - 1) * 60; // Adjust based on the distance between points
+            if (offsetX > maxVisibleOffset) {
+                offsetX = maxVisibleOffset;
+            }
+
+
+
             drawGraph();
         }
     }
