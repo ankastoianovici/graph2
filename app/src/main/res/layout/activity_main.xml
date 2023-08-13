@@ -17,16 +17,6 @@
         android:layout_height="wrap_content"
         android:text="Add Random Data" />
 
-    <Button
-        android:id="@+id/moveLeftButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Move Left" />
 
-    <Button
-        android:id="@+id/moveRightButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Move Right" />
 
 </LinearLayout>

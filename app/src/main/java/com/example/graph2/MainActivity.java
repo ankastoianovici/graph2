@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -31,6 +32,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private float startX = 0;
     private float offsetX = 0;
 
+    private float lastTouchX;
+    private boolean isDragging = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,11 +51,32 @@ public class MainActivity extends Activity implements View.OnClickListener {
         timestamps = new ArrayList<>();
         random = new Random();
 
-        Button moveLeftButton = findViewById(R.id.moveLeftButton);
-        Button moveRightButton = findViewById(R.id.moveRightButton);
 
-        moveLeftButton.setOnClickListener(this);
-        moveRightButton.setOnClickListener(this);
+        graphCanvas.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                float touchX = event.getX();
+
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        lastTouchX = touchX;
+                        isDragging = true;
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        if (isDragging) {
+                            float offsetX = touchX - lastTouchX;
+                            lastTouchX = touchX;
+                            moveGraph(offsetX);
+                        }
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        isDragging = false;
+                        break;
+                }
+
+                return true;
+            }
+        });
     }
 
     @Override
@@ -61,12 +86,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
             dataPoints.add(randomValue);
             timestamps.add(System.currentTimeMillis()); // Add current timestamp
             System.out.println("Added random value: " + randomValue + " at time: " + getCurrentTime());
-            drawGraph();
-        } else if (v.getId() == R.id.moveLeftButton) {
-            offsetX += 20; // Move the graph to the left by 20 pixels
-            drawGraph();
-        } else if (v.getId() == R.id.moveRightButton) {
-            offsetX -= 20; // Move the graph to the right by 20 pixels
             drawGraph();
         }
     }
@@ -111,6 +130,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
             holder.unlockCanvasAndPost(canvas);
         }
+    }
+
+
+
+    private void moveGraph(float offsetX) {
+        this.offsetX += offsetX;
+        drawGraph();
     }
 
     private String getCurrentTimeFromTimestamp(long timestamp) {
